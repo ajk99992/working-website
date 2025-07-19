@@ -16,7 +16,7 @@ let collection;
 
 // Initialize Chroma collection on server start
 (async () => {
-  collection = await getCollection('my_docs');
+  collection = await getCollection('chatbot_docs'); // updated to your seeded collection name
   // Optionally seed docs on first run:
   // await createCollectionWithEmbeddings();
 })();
@@ -36,9 +36,15 @@ app.post('/api/chat', async (req, res) => {
       include: ['documents', 'distances'],
     });
 
-    const contextText = results.documents.flat().join('\n---\n');
+    console.log("Chroma search results:", results.documents);
 
-    // Compose messages for chat completion
+    // If no docs found, fallback to generic response
+    let contextText = "Sorry, I couldn't find relevant information.";
+    if (results.documents.length && results.documents[0].length) {
+      contextText = results.documents.flat().join('\n---\n');
+    }
+
+    // Compose messages for chat completion with context
     const messages = [
       {
         role: 'system',
@@ -52,10 +58,10 @@ app.post('/api/chat', async (req, res) => {
 
     // Call OpenAI chat completion
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4',
       messages,
-      max_tokens: 500,
-      temperature: 0.7,
+      max_tokens: 700,
+      temperature: 0.2,
     });
 
     res.json({ reply: completion.choices[0].message.content });
@@ -67,6 +73,3 @@ app.post('/api/chat', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
-
-
-console.log('Retrieved documents:', results.documents);

@@ -6,18 +6,18 @@ const { ChromaClient } = require('chromadb');
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Initialize Chroma client (point to local server)
-const client = new ChromaClient({ path: "http://localhost:8000" });
+// Connect to the Chroma server running on localhost:8000
+const client = new ChromaClient({ path: 'http://localhost:8000' });
 
 // Create or get collection
-async function getCollection(name = 'my_docs') {
+async function getCollection(name = 'chatbot_docs') {
   return await client.getOrCreateCollection({ name });
 }
 
 // Generate embedding for a given text
 async function getEmbedding(text) {
   const embeddingRes = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
+    model: 'text-embedding-ada-002',
     input: text,
   });
   return embeddingRes.data[0].embedding;
